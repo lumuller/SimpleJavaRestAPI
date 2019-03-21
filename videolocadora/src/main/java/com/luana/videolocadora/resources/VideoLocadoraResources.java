@@ -1,7 +1,6 @@
 package com.luana.videolocadora.resources;
 
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,16 +39,8 @@ public class VideoLocadoraResources {
 	@Autowired
 	RentsRepository rentsRepository;
 	
-	//TESTAR
-	/*@GetMapping("/logout")
-	public void logout(HttpServletRequest request, HttpServletResponse response){	
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null){
-            new SecurityContextLogoutHandler().logout(request, response, auth);            
-        }
-	}*/
-		
 	//Métodos para CRUD de Filmes
+	@Secured("ROLE_ADMIN")
 	@PostMapping("/movies")
 	public Movie saveMovies(@RequestBody Movie movie) {
 		return moviesRepository.save(movie);
@@ -61,37 +52,51 @@ public class VideoLocadoraResources {
 		return moviesRepository.findAll().stream().filter(f -> f.isAvailable() == true).collect(Collectors.toList()); 
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/movies/{movieId}")
-	public void deleteFilme(@PathVariable(value="movieId") Integer movieId) throws SQLIntegrityConstraintViolationException  {
-		moviesRepository.deleteById(movieId);
+	public String deleteFilme(@PathVariable(value="movieId") Integer movieId)  {
+		try {
+			moviesRepository.deleteById(movieId);		
+			return String.format("Movie %d was removed successfully.", movieId);
+		}catch(Exception e) {
+			return String.format("A error happened while removing the movie. Error information: %s", e.getMessage());
+		}
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@PutMapping("/movies")
 	public Movie updateMovie(@RequestBody Movie movie) {
 		return moviesRepository.save(movie);
 	}
 	
 	//Métodos para CRUD de Usuarios
-	@PostMapping("/users")
+	@Secured("ROLE_ADMIN")
+	@PostMapping("/users")	
 	public User saveUser(@RequestBody User user) {		
 		return usersRepository.save(user);
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@GetMapping("/users")
-	public List<User> listUsers(){		
-		return usersRepository.findAll();
+	public List<User> listUsers(){					
+		List<User> allUsers = usersRepository.findAll();		
+		allUsers.stream().forEach(u -> u.setPassword("######"));
+		return allUsers;
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/users/{username}")
-	public void deleteUser(@PathVariable(value="username") String username) throws SQLIntegrityConstraintViolationException {
-		usersRepository.deleteById(username);		
+	public String deleteUser(@PathVariable(value="username") String username)  {
+		
+		try {
+			usersRepository.deleteById(username);	
+			return String.format("User %s was removed successfully.", username);
+		}catch(Exception e) {
+			return String.format("A error happened while removing the user. Error information: %s", e.getMessage());
+		}
+	
 	}
-	
-	@PutMapping("/users")
-	public User updateUser(@RequestBody User user) {
-		return usersRepository.save(user);
-	}	
-	
+
 	@PostMapping("/rents/{movieId}")
 	public String rentMovie(@PathVariable(value="movieId") Integer movieId) {						
 		Rent newRentRegister = new Rent();		
@@ -119,7 +124,6 @@ public class VideoLocadoraResources {
 	}	
 	
 		
-	//TESTAR
 	@PutMapping("/rents/{movieId}")
 	public String returnMovie(@PathVariable(value="movieId") Integer movieId) {							
 				
@@ -152,6 +156,7 @@ public class VideoLocadoraResources {
 		}
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@GetMapping("/rents")
 	public List<RentsSimplified> listNotReturnedRents(){	
 		List<Rent> rentsNotReturned = rentsRepository.findAll().stream().filter(l -> l.getReturnDate() == null).collect(Collectors.toList()); 
@@ -163,6 +168,7 @@ public class VideoLocadoraResources {
 		return presentationList;
 	}
 	
+	@Secured("ROLE_ADMIN")
 	@GetMapping("/rents/{movieId}")
 	public List<RentsSimplified> listRentsFromMovie(@PathVariable(value="movieId") Integer movieId){	
 		

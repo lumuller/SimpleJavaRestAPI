@@ -31,8 +31,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         if(usuario != null && usuario.getPassword().equals(password)) {
         	List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(usuario.getRole()));
-
+            authorities.add(new SimpleGrantedAuthority("ROLE_"+usuario.getRole().toUpperCase()));
+            
             return new UsernamePasswordAuthenticationToken(email, password, authorities);
         } return null;       
         
