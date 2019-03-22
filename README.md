@@ -27,8 +27,8 @@ Os exemplos de uso a seguir são demonstrados com o uso do comando curl, onde:
 
 #### Usuários/Clientes:
 
-** URL de acesso: /users **
-* Esta URL de acesso só pode ser usada por usuários com papel de ADMIN.* 
+**URL de acesso: /users**
+*Esta URL de acesso só pode ser usada por usuários com papel de ADMIN.* 
 
 ##### Criando um novo usuário
 
