@@ -12,5 +12,5 @@ public interface RentsRepository extends JpaRepository<Rent, Integer>{
 	Rent findByMovie(Movie movie);
 	
 	List<Rent> findAllByMovie(Movie movie);
-			
+	
 }

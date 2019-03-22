@@ -86,8 +86,7 @@ public class VideoLocadoraResources {
 	
 	@Secured("ROLE_ADMIN")
 	@DeleteMapping("/users/{username}")
-	public String deleteUser(@PathVariable(value="username") String username)  {
-		
+	public String deleteUser(@PathVariable(value="username") String username)  {		
 		try {
 			usersRepository.deleteById(username);	
 			return String.format("User %s was removed successfully.", username);
@@ -104,18 +103,13 @@ public class VideoLocadoraResources {
 		if(requiredMovie.isPresent()) {
 			if(requiredMovie.get().isAvailable()) {
 				requiredMovie.get().setAvailable(false);
-				newRentRegister.setMovie(requiredMovie.get());
-				
+				newRentRegister.setMovie(requiredMovie.get());				
 				User user = usersRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
-				newRentRegister.setUser(user);
-				
-				newRentRegister.setRentalDate(new Date());
-			
-				rentsRepository.save(newRentRegister);
-				
+				newRentRegister.setUser(user);				
+				newRentRegister.setRentalDate(new Date());			
+				rentsRepository.save(newRentRegister);				
 				return String.format("Locação do filme %s (id %d) efetuada com sucesso por %s.", requiredMovie.get().getTitle(), requiredMovie.get().getId(),user.getName());
-			} else {
-				
+			} else {				
 				return String.format("O filme %s (id %d) não está disponível para locação.", requiredMovie.get().getTitle(), requiredMovie.get().getId());
 			}
 		} else {
@@ -128,27 +122,20 @@ public class VideoLocadoraResources {
 	public String returnMovie(@PathVariable(value="movieId") Integer movieId) {							
 				
 		Optional<Movie> requiredMovie = moviesRepository.findById(movieId);
-		if(requiredMovie.isPresent()) {
-			
-			User user = usersRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
-			
-			List<Rent> movieRents = rentsRepository.findAllByMovie(requiredMovie.get());
-			
+		if(requiredMovie.isPresent()) {			
+			User user = usersRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());			
+			List<Rent> movieRents = rentsRepository.findAllByMovie(requiredMovie.get());			
 			List<Rent> movieRentsPerformedByCurrentUser = movieRents.stream()  
 		                .filter(str -> str.getUser().getUsername().equals(user.getUsername()) && str.getReturnDate() == null) 
-		                .collect(Collectors.toList());  
-			
+		                .collect(Collectors.toList());  			
 			if(movieRentsPerformedByCurrentUser.isEmpty()) {
 				return String.format("Não foi possível identificar um registro de locação do filme %s em aberto para seu usuário (%s). ", movieId, user.getUsername());
 			} else {
-				Rent rentalRegister = movieRentsPerformedByCurrentUser.iterator().next();
-				
+				Rent rentalRegister = movieRentsPerformedByCurrentUser.iterator().next();				
 				rentalRegister.setReturnDate(new Date());
-				rentalRegister.getMovie().setAvailable(true);				
-				
+				rentalRegister.getMovie().setAvailable(true);
 				moviesRepository.save(rentalRegister.getMovie());
-				rentsRepository.save(rentalRegister);
-				
+				rentsRepository.save(rentalRegister);				
 				return String.format("%s, o filme %s (id %d) foi devolvido com sucesso.", user.getName(), requiredMovie.get().getTitle(), requiredMovie.get().getId());
 			}			
 		} else {
@@ -170,23 +157,18 @@ public class VideoLocadoraResources {
 	
 	@Secured("ROLE_ADMIN")
 	@GetMapping("/rents/{movieId}")
-	public List<RentsSimplified> listRentsFromMovie(@PathVariable(value="movieId") Integer movieId){	
-		
+	public List<RentsSimplified> listRentsFromMovie(@PathVariable(value="movieId") Integer movieId){		
 		Optional<Movie> requiredMovie = moviesRepository.findById(movieId);
 		if(requiredMovie.isPresent()) {		
-			List<Rent> rentsFromMovie = rentsRepository.findAllByMovie(requiredMovie.get());
-			
+			List<Rent> rentsFromMovie = rentsRepository.findAllByMovie(requiredMovie.get());			
 			List<RentsSimplified> presentationList = new ArrayList<>();
 			for(Rent l : rentsFromMovie){
 				presentationList.add(new RentsSimplified(l.getMovie().getId(), l.getMovie().getTitle(), l.getUser().getUsername(), 
 						l.getRentalDate(), l.getReturnDate()));
-			}
-			
-			presentationList.sort((RentsSimplified l1, RentsSimplified l2)->l2.getRentalDate().compareTo(l1.getRentalDate()));
-										
+			}			
+			presentationList.sort((RentsSimplified l1, RentsSimplified l2)->l2.getRentalDate().compareTo(l1.getRentalDate()));										
 			return presentationList;	
-		}
-		
+		}		
 		return null;
 	}
 	
